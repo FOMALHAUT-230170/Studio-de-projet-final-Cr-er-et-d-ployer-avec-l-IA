@@ -1,13 +1,22 @@
-// app.js / script.js
+// script.js
 const TMDB_API_KEY = '5cc919b4e7456ccbe70bfa3f80c6ed98'; 
 const BASE_URL = 'https://themoviedb.org';
 const IMAGE_URL = 'https://tmdb.org';
+
+// Catalogue de secours au cas où l'API TMDB bloque la clé
+const backupMovies = [
+    { id: 27205, title: "Inception", overview: "Dom Cobb est un voleur expérimenté dans l'art périlleux de l'extraction : sa spécialité consiste à s'approprier les secrets les plus précieux d'un individu pendant qu'il rêve.", poster_path: "/ae9393S77Y7vBTm9b6g6W8g6kvb.jpg", release_date: "2010-07-16", vote_average: 8.4 },
+    { id: 157336, title: "Interstellar", overview: "Un groupe d'explorateurs utilise une faille récemment découverte dans l'espace-temps afin de repousser les limites humaines et partir à la conquête des distances astronomiques.", poster_path: "/gEU2QniE6E77v6v36gVJUgN3cat.jpg", release_date: "2014-11-05", vote_average: 8.4 },
+    { id: 155, title: "The Dark Knight", overview: "Avec l'aide du lieutenant de police Jim Gordon et du procureur Harvey Dent, Batman entreprend de démanteler les dernières organisations criminelles qui infestent les rues de Gotham.", poster_path: "/qJ2tWGB2v9m76T3XmN7SgGg0612.jpg", release_date: "2008-07-18", vote_average: 8.5 },
+    { id: 496243, title: "Parasite", overview: "Toute la famille de Ki-taek est au chômage et s'intéresse fortement au train de vie de la richissime famille Park.", poster_path: "/7IiTT0CHrs6gZg6mSVvK7gGBgGg.jpg", release_date: "2019-05-30", vote_average: 8.5 },
+    { id: 299534, title: "Avengers: Endgame", overview: "Le Thanos ayant détruit la moitié de l'univers, les Avengers restants resserrent les rangs pour sauter dans le temps et réparer ses méfaits.", poster_path: "/or066gI6g7gM6gSgKgNgSgGg612.jpg", release_date: "2019-04-24", vote_average: 8.3 },
+    { id: 603, title: "Matrix", overview: "Un programmeur informatique découvre que la réalité n'est qu'une simulation virtuelle contrôlée par des machines intelligentes.", poster_path: "/lh4vG6gM7gSgKgNgSgGg612b7.jpg", release_date: "1999-03-30", vote_average: 8.2 }
+];
 
 let favorites = JSON.parse(localStorage.getItem('movie_explorer_favorites')) || [];
 let showOnlyFavorites = false;
 let currentMoviesList = [];
 
-// États pour la pagination et la recherche
 let currentPage = 1;
 let currentQuery = '';
 let isLoading = false;
@@ -18,7 +27,6 @@ const searchInput = document.getElementById('search');
 const toggleFavBtn = document.getElementById('toggle-favorites');
 const scrollAnchor = document.getElementById('scroll-anchor');
 
-// Éléments de la modale
 const modal = document.getElementById('movie-modal');
 const closeModalBtn = document.querySelector('.close-modal');
 const modalPoster = document.getElementById('modal-poster');
@@ -28,12 +36,10 @@ const modalOverview = document.getElementById('modal-overview');
 const trailerContainer = document.getElementById('trailer-container');
 const trailerVideo = document.getElementById('trailer-video');
 
-// Initialisation au chargement
 fetchMovies();
 
-// Chargement centralisé des films (Défilement Infini ou Recherche)
 async function fetchMovies(resetList = false) {
-    if (isLoading || showOnlyFavorites || !hasMorePages) return;
+    if (isLoading || showOnlyFavorites) return;
     isLoading = true;
 
     if (resetList) {
@@ -50,44 +56,51 @@ async function fetchMovies(resetList = false) {
 
     try {
         const res = await fetch(url);
+        if (!res.ok) throw new Error("Clé API restreinte");
         const data = await res.json();
         
-        if (data.results) {
+        if (data.results && data.results.length > 0) {
             currentMoviesList = [...currentMoviesList, ...data.results];
             appendMovies(data.results);
-            
-            if (currentPage >= data.total_pages || data.results.length === 0) {
-                hasMorePages = false;
-            } else {
-                currentPage++;
-            }
+            currentPage++;
+        } else {
+            if (currentMoviesList.length === 0) loadBackupCatalog();
         }
     } catch (err) {
         if (currentMoviesList.length === 0) {
-            grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center;">Erreur lors de la récupération des données. Vérifiez votre clé API.</p>`;
+            loadBackupCatalog();
         }
     } finally {
         isLoading = false;
     }
 }
 
-// Ajoute incrémentiellement les éléments dans la grille de l'interface
-function appendMovies(movies) {
-    if (currentMoviesList.length === 0) {
-        grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center;">Aucun film trouvé.</p>`;
-        return;
-    }
+function loadBackupCatalog() {
+    currentMoviesList = backupMovies;
+    grid.innerHTML = '';
+    appendMovies(backupMovies);
+    hasMorePages = false;
+}
 
+function appendMovies(movies) {
     movies.forEach(movie => {
         const isFav = favorites.some(f => f.id === movie.id);
-        const poster = movie.poster_path ? `${IMAGE_URL}${movie.poster_path}` : 'https://placeholder.com';
+        
+        // Gestion des affiches (avec secours sur image générique si TMDB bloque l'URL de l'image)
+        let poster = 'https://unsplash.com';
+        if (movie.poster_path && !movie.poster_path.startsWith('http')) {
+            poster = `${IMAGE_URL}${movie.poster_path}`;
+        } else if (movie.poster_path) {
+            poster = movie.poster_path;
+        }
+        
         const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
         
         const card = document.createElement('div');
         card.className = 'movie-card';
         card.innerHTML = `
-            <button class="btn-fav" data-id="${movie.id}">${isFav ? '❤️' : '🤍'}</button>
-            <img class="movie-poster" src="${poster}" alt="${movie.title}">
+            <button class="btn-fav">${isFav ? '❤️' : '🤍'}</button>
+            <img class="movie-poster" src="${poster}" alt="${movie.title}" onerror="this.src='https://unsplash.com'">
             <div class="movie-info">
                 <h3 class="movie-title" title="${movie.title}">${movie.title}</h3>
                 <div class="movie-meta">
@@ -110,7 +123,7 @@ function appendMovies(movies) {
 function displayFavoritesOnly() {
     grid.innerHTML = '';
     if (favorites.length === 0) {
-        grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center;">Vous n'avez pas encore de favoris.</p>`;
+        grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; padding: 50px; font-size: 1.2rem;">Vous n'avez pas encore de favoris.</p>`;
         return;
     }
     appendMovies(favorites);
@@ -126,41 +139,33 @@ function toggleFavorite(movie, buttonElement) {
         buttonElement.innerText = '🤍';
     }
     localStorage.setItem('movie_explorer_favorites', JSON.stringify(favorites));
-    
-    if (showOnlyFavorites) {
-        displayFavoritesOnly();
-    }
+    if (showOnlyFavorites) displayFavoritesOnly();
 }
 
-// Logique de la fenêtre Modale + Recherche de Bande-Annonce
 async function openModal(movie) {
-    const poster = movie.poster_path ? `${IMAGE_URL}${movie.poster_path}` : 'https://placeholder.com';
+    let poster = 'https://unsplash.com';
+    if (movie.poster_path && !movie.poster_path.startsWith('http')) {
+        poster = `${IMAGE_URL}${movie.poster_path}`;
+    }
     const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
 
     modalPoster.src = poster;
     modalTitle.innerText = movie.title;
     modalMeta.innerHTML = `<span>📅 Sortie : ${year}</span> <span class="movie-rating">⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : '0.0'}/10</span>`;
-    modalOverview.innerText = movie.overview || "Aucun synopsis disponible en français pour ce film.";
+    modalOverview.innerText = movie.overview || "Aucun synopsis disponible pour ce film.";
     
-    // Réinitialisation par défaut de la vidéo
     trailerContainer.style.display = 'none';
     trailerVideo.src = '';
-
     modal.classList.add('show');
 
-    // Récupération dynamique de la bande-annonce
     try {
         const res = await fetch(`${BASE_URL}/movie/${movie.id}/videos?api_key=${TMDB_API_KEY}&language=fr-FR`);
         let data = await res.json();
-        
-        // Si aucune vidéo en français n'est disponible, chercher en anglais
-        if (!data.results || data.results.length === 0) {
+        if ((!data.results || data.results.length === 0) && res.ok) {
             const resEn = await fetch(`${BASE_URL}/movie/${movie.id}/videos?api_key=${TMDB_API_KEY}`);
             data = await resEn.json();
         }
-
         if (data.results && data.results.length > 0) {
-            // Filtrer pour obtenir un Trailer ou un Teaser hébergé sur YouTube
             const trailer = data.results.find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')) || data.results[0];
             if (trailer && trailer.key) {
                 trailerVideo.src = `https://youtube.com{trailer.key}`;
@@ -168,30 +173,31 @@ async function openModal(movie) {
             }
         }
     } catch (err) {
-        console.error("Impossible de charger la bande-annonce", err);
+        console.log("Mode local : recherche de bande-annonce ignorée.");
     }
 }
 
 function closeModal() {
     modal.classList.remove('show');
-    trailerVideo.src = ''; // Stopper la lecture audio/vidéo à la fermeture
+    trailerVideo.src = '';
 }
 
 closeModalBtn.addEventListener('click', closeModal);
-window.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-});
+window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-// Barre de recherche (Gestion par Debounce)
 let searchTimeout;
 searchInput.addEventListener('input', (e) => {
     if (showOnlyFavorites) return;
     clearTimeout(searchTimeout);
     currentQuery = e.target.value;
-    searchTimeout = setTimeout(() => fetchMovies(true), 300);
+    
+    if (!currentQuery && hasMorePages === false) {
+        loadBackupCatalog();
+    } else {
+        searchTimeout = setTimeout(() => fetchMovies(true), 300);
+    }
 });
 
-// Gestion du bouton Filtre Favoris
 toggleFavBtn.addEventListener('click', () => {
     showOnlyFavorites = !showOnlyFavorites;
     toggleFavBtn.classList.toggle('active', showOnlyFavorites);
@@ -200,18 +206,17 @@ toggleFavBtn.addEventListener('click', () => {
     
     if (showOnlyFavorites) {
         displayFavoritesOnly();
+    } else if (hasMorePages === false) {
+        loadBackupCatalog();
     } else {
         fetchMovies(true);
     }
 });
 
-// Configuration de l'Intersection Observer pour le Défilement Infini
 const observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting && !showOnlyFavorites && !isLoading && hasMorePages) {
+    if (entries.isIntersecting && !showOnlyFavorites && !isLoading && hasMorePages) {
         fetchMovies();
     }
-}, {
-    rootMargin: '200px' // Précharger le contenu avant que l'ancre n'atteigne l'écran
-});
+}, { rootMargin: '200px' });
 
 observer.observe(scrollAnchor);
