@@ -5,13 +5,14 @@ const IMAGE_URL = 'https://tmdb.org';
 
 // Catalogue de secours au cas où l'API TMDB bloque la clé
 const backupMovies = [
-    { id: 27205, title: "Inception", overview: "Dom Cobb est un voleur expérimenté dans l'art périlleux de l'extraction : sa spécialité consiste à s'approprier les secrets les plus précieux d'un individu pendant qu'il rêve.", poster_path: "/ae9393S77Y7vBTm9b6g6W8g6kvb.jpg", release_date: "2010-07-16", vote_average: 8.4 },
-    { id: 157336, title: "Interstellar", overview: "Un groupe d'explorateurs utilise une faille récemment découverte dans l'espace-temps afin de repousser les limites humaines et partir à la conquête des distances astronomiques.", poster_path: "/gEU2QniE6E77v6v36gVJUgN3cat.jpg", release_date: "2014-11-05", vote_average: 8.4 },
-    { id: 155, title: "The Dark Knight", overview: "Avec l'aide du lieutenant de police Jim Gordon et du procureur Harvey Dent, Batman entreprend de démanteler les dernières organisations criminelles qui infestent les rues de Gotham.", poster_path: "/qJ2tWGB2v9m76T3XmN7SgGg0612.jpg", release_date: "2008-07-18", vote_average: 8.5 },
+    { id: 27205, title: "Inception", overview: "Dom Cobb est un voleur expérimenté dans l'art périlleux de l'extraction : sa spécialité consiste à s'approprier les secrets les plus précieux d'un individu pendant qu'il rêve.", poster_path: "https://unsplash.com", release_date: "2010-07-16", vote_average: 8.4 },
+    { id: 157336, title: "Interstellar", overview: "Un groupe d'explorateurs utilise une faille récemment découverte dans l'espace-temps afin de repousser les limites humaines et partir à la conquête des distances astronomiques.", poster_path: "https://unsplash.com", release_date: "2014-11-05", vote_average: 8.4 },
+    { id: 155, title: "The Dark Knight", overview: "Avec l'aide du lieutenant de police Jim Gordon et du procureur Harvey Dent, Batman entreprend de démanteler les dernières organisations criminelles qui infestent les rues de Gotham.", poster_path: "https://unsplash.com", release_date: "2008-07-18", vote_average: 8.5 },
     { id: 496243, title: "Parasite", overview: "Toute la famille de Ki-taek est au chômage et s'intéresse fortement au train de vie de la richissime famille Park.", poster_path: "/7IiTT0CHrs6gZg6mSVvK7gGBgGg.jpg", release_date: "2019-05-30", vote_average: 8.5 },
-    { id: 299534, title: "Avengers: Endgame", overview: "Le Thanos ayant détruit la moitié de l'univers, les Avengers restants resserrent les rangs pour sauter dans le temps et réparer ses méfaits.", poster_path: "/or066gI6g7gM6gSgKgNgSgGg612.jpg", release_date: "2019-04-24", vote_average: 8.3 },
-    { id: 603, title: "Matrix", overview: "Un programmeur informatique découvre que la réalité n'est qu'une simulation virtuelle contrôlée par des machines intelligentes.", poster_path: "/lh4vG6gM7gSgKgNgSgGg612b7.jpg", release_date: "1999-03-30", vote_average: 8.2 }
+    { id: 299534, title: "Avengers: Endgame", overview: "Thanos ayant détruit la moitié de l'univers, les Avengers restants resserrent les rangs pour sauter dans le temps et réparer ses méfaits.", poster_path: "https://unsplash.com", release_date: "2019-04-24", vote_average: 8.3 },
+    { id: 603, title: "Matrix", overview: "Un programmeur informatique découvre que la réalité n'est qu'une simulation virtuelle contrôlée par des machines intelligentes.", poster_path: "https://unsplash.com", release_date: "1999-03-30", vote_average: 8.2 }
 ];
+
 
 let favorites = JSON.parse(localStorage.getItem('movie_explorer_favorites')) || [];
 let showOnlyFavorites = false;
