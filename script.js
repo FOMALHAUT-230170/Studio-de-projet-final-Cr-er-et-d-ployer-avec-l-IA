@@ -1,5 +1,5 @@
 // app.js
-const TMDB_API_KEY = 'VOTRE_CLE_API_TMDB'; 
+const TMDB_API_KEY = '6f8d2b...votre_vraie_cle_api...'; 
 const BASE_URL = 'https://themoviedb.org';
 const IMAGE_URL = 'https://tmdb.org';
 
