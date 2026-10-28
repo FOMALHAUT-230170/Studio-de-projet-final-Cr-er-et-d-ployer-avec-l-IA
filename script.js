@@ -1,18 +1,17 @@
 // script.js
 const TMDB_API_KEY = '5cc919b4e7456ccbe70bfa3f80c6ed98'; 
-const BASE_URL = 'https://themoviedb.org';
-const IMAGE_URL = 'https://tmdb.org';
+const BASE_URL = 'https://themoviedb.org'; 
+const IMAGE_URL = 'https://tmdb.org'; 
 
-// Catalogue de secours au cas où l'API TMDB bloque la clé
+// Catalogue de secours avec de vraies images directes et stables (Unsplash)
 const backupMovies = [
     { id: 27205, title: "Inception", overview: "Dom Cobb est un voleur expérimenté dans l'art périlleux de l'extraction : sa spécialité consiste à s'approprier les secrets les plus précieux d'un individu pendant qu'il rêve.", poster_path: "https://unsplash.com", release_date: "2010-07-16", vote_average: 8.4 },
     { id: 157336, title: "Interstellar", overview: "Un groupe d'explorateurs utilise une faille récemment découverte dans l'espace-temps afin de repousser les limites humaines et partir à la conquête des distances astronomiques.", poster_path: "https://unsplash.com", release_date: "2014-11-05", vote_average: 8.4 },
     { id: 155, title: "The Dark Knight", overview: "Avec l'aide du lieutenant de police Jim Gordon et du procureur Harvey Dent, Batman entreprend de démanteler les dernières organisations criminelles qui infestent les rues de Gotham.", poster_path: "https://unsplash.com", release_date: "2008-07-18", vote_average: 8.5 },
-    { id: 496243, title: "Parasite", overview: "Toute la famille de Ki-taek est au chômage et s'intéresse fortement au train de vie de la richissime famille Park.", poster_path: "/7IiTT0CHrs6gZg6mSVvK7gGBgGg.jpg", release_date: "2019-05-30", vote_average: 8.5 },
+    { id: 496243, title: "Parasite", overview: "Toute la famille de Ki-taek est au chômage et s'intéresse fortement au train de vie de la richissime famille Park.", poster_path: "https://unsplash.com", release_date: "2019-05-30", vote_average: 8.5 },
     { id: 299534, title: "Avengers: Endgame", overview: "Thanos ayant détruit la moitié de l'univers, les Avengers restants resserrent les rangs pour sauter dans le temps et réparer ses méfaits.", poster_path: "https://unsplash.com", release_date: "2019-04-24", vote_average: 8.3 },
     { id: 603, title: "Matrix", overview: "Un programmeur informatique découvre que la réalité n'est qu'une simulation virtuelle contrôlée par des machines intelligentes.", poster_path: "https://unsplash.com", release_date: "1999-03-30", vote_average: 8.2 }
 ];
-
 
 let favorites = JSON.parse(localStorage.getItem('movie_explorer_favorites')) || [];
 let showOnlyFavorites = false;
@@ -37,6 +36,7 @@ const modalOverview = document.getElementById('modal-overview');
 const trailerContainer = document.getElementById('trailer-container');
 const trailerVideo = document.getElementById('trailer-video');
 
+// Initialisation au chargement de la page
 fetchMovies();
 
 async function fetchMovies(resetList = false) {
@@ -57,7 +57,7 @@ async function fetchMovies(resetList = false) {
 
     try {
         const res = await fetch(url);
-        if (!res.ok) throw new Error("Clé API restreinte");
+        if (!res.ok) throw new Error("Clé API restreinte ou invalide");
         const data = await res.json();
         
         if (data.results && data.results.length > 0) {
@@ -80,33 +80,35 @@ function loadBackupCatalog() {
     currentMoviesList = backupMovies;
     grid.innerHTML = '';
     appendMovies(backupMovies);
-    hasMorePages = false;
+    hasMorePages = false; 
 }
 
 function appendMovies(movies) {
     movies.forEach(movie => {
         const isFav = favorites.some(f => f.id === movie.id);
         
-        // Gestion des affiches (avec secours sur image générique si TMDB bloque l'URL de l'image)
-        let poster = 'https://unsplash.com';
-        if (movie.poster_path && !movie.poster_path.startsWith('http')) {
-            poster = `${IMAGE_URL}${movie.poster_path}`;
-        } else if (movie.poster_path) {
-            poster = movie.poster_path;
+        let poster = "https://unsplash.com";
+        if (movie.poster_path) {
+            if (movie.poster_path.startsWith('http')) {
+                poster = movie.poster_path;
+            } else {
+                poster = `${IMAGE_URL}${movie.poster_path}`;
+            }
         }
         
         const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+        const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '0.0';
         
         const card = document.createElement('div');
         card.className = 'movie-card';
         card.innerHTML = `
             <button class="btn-fav">${isFav ? '❤️' : '🤍'}</button>
-            <img class="movie-poster" src="${poster}" alt="${movie.title}" onerror="this.src='https://unsplash.com'">
+            <img class="movie-poster" src="${poster}" alt="${movie.title}">
             <div class="movie-info">
                 <h3 class="movie-title" title="${movie.title}">${movie.title}</h3>
                 <div class="movie-meta">
                     <span>📅 ${year}</span>
-                    <span class="movie-rating">⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : '0.0'}</span>
+                    <span class="movie-rating">⭐ ${rating}</span>
                 </div>
             </div>
         `;
@@ -145,14 +147,15 @@ function toggleFavorite(movie, buttonElement) {
 
 async function openModal(movie) {
     let poster = 'https://unsplash.com';
-    if (movie.poster_path && !movie.poster_path.startsWith('http')) {
-        poster = `${IMAGE_URL}${movie.poster_path}`;
+    if (movie.poster_path) {
+        poster = movie.poster_path.startsWith('http') ? movie.poster_path : `${IMAGE_URL}${movie.poster_path}`;
     }
     const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+    const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '0.0';
 
     modalPoster.src = poster;
     modalTitle.innerText = movie.title;
-    modalMeta.innerHTML = `<span>📅 Sortie : ${year}</span> <span class="movie-rating">⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : '0.0'}/10</span>`;
+    modalMeta.innerHTML = `<span>📅 Sortie : ${year}</span> <span class="movie-rating">⭐ ${rating}/10</span>`;
     modalOverview.innerText = movie.overview || "Aucun synopsis disponible pour ce film.";
     
     trailerContainer.style.display = 'none';
@@ -174,7 +177,7 @@ async function openModal(movie) {
             }
         }
     } catch (err) {
-        console.log("Mode local : recherche de bande-annonce ignorée.");
+        console.log("Mode local ou erreur : recherche de bande-annonce ignorée.");
     }
 }
 
@@ -191,12 +194,7 @@ searchInput.addEventListener('input', (e) => {
     if (showOnlyFavorites) return;
     clearTimeout(searchTimeout);
     currentQuery = e.target.value;
-    
-    if (!currentQuery && hasMorePages === false) {
-        loadBackupCatalog();
-    } else {
-        searchTimeout = setTimeout(() => fetchMovies(true), 300);
-    }
+    searchTimeout = setTimeout(() => fetchMovies(true), 300);
 });
 
 toggleFavBtn.addEventListener('click', () => {
@@ -218,6 +216,7 @@ const observer = new IntersectionObserver((entries) => {
     if (entries.isIntersecting && !showOnlyFavorites && !isLoading && hasMorePages) {
         fetchMovies();
     }
-}, { rootMargin: '200px' });
+}, { rootMargin: '100px' });
 
-observer.observe(scrollAnchor);
+if (scrollAnchor) {observer.observe(scrollAnchor);
+}
