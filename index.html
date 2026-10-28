@@ -1,0 +1,50 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieExplorer Pro</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>🎬 MovieExplorer Pro</h1>
+        <div class="filters">
+            <input type="text" id="search" placeholder="Rechercher un film (ex: Inception)...">
+            <button id="toggle-favorites" class="btn-fav-toggle">❤️ Voir mes favoris</button>
+        </div>
+    </header>
+    
+    <!-- Zone principale où s'injectent les fiches de chaque film -->
+    <main id="movie-grid" class="movie-grid"></main>
+
+    <!-- Élément invisible servant de repère pour charger la suite des films au défilement -->
+    <div id="scroll-anchor" class="scroll-anchor"></div>
+
+    <!-- Structure de la fenêtre modale (masquée par défaut via le CSS) -->
+    <div id="movie-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body">
+                <img id="modal-poster" src="" alt="Affiche du film">
+                <div class="modal-info">
+                    <h2 id="modal-title"></h2>
+                    <p id="modal-meta" class="movie-meta"></p>
+                    <h3>Synopsis</h3>
+                    <p id="modal-overview"></p>
+                    
+                    <div id="trailer-container" class="trailer-container">
+                        <h3>Bande-annonce</h3>
+                        <div class="video-responsive">
+                            <iframe id="trailer-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
